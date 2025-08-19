@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # n8n service - starts first
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: callcenter_n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678
+      - N8N_METRICS=true
+      - N8N_LOG_LEVEL=info
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_DISABLE_UI=false
+      - N8N_API_ENABLED=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/files
+    networks:
+      - callcenter-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Streamlit app - waits for n8n to be healthy
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: callcenter_streamlit
+    restart: always
+    ports:
+      - "8504:8504"
+    environment:
+      - N8N_URL=http://n8n:5678
+      - N8N_WEBHOOK_BASE=http://localhost:5678/webhook
+      - PERPLEXITY_API_KEY=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
+    volumes:
+      - ./:/app
+      - streamlit_data:/app/data
+    networks:
+      - callcenter-network
+    depends_on:
+      n8n:
+        condition: service_healthy
+    command: streamlit run simple_company_research.py --server.port 8504 --server.address 0.0.0.0
+
+volumes:
+  n8n_data:
+  streamlit_data:
+
+networks:
+  callcenter-network:
+    driver: bridge

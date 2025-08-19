@@ -1,0 +1,5 @@
+# Snowflake Connection Requirements
+snowflake-connector-python[pandas]==3.7.0
+snowflake-sqlalchemy==1.5.1
+pandas>=1.5.0
+streamlit>=1.28.0

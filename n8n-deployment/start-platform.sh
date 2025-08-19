@@ -1,0 +1,25 @@
+#!/bin/bash
+echo "🚀 Starting Call Center n8n Platform..."
+echo ""
+echo "Services starting:"
+echo "  📊 n8n Visual Workflows: http://localhost:5678"
+echo "  🗄️  PostgreSQL Database"
+echo "  🤖 Ollama Local LLM: http://localhost:11434"
+echo ""
+echo "Integrations configured:"
+echo "  🔍 Perplexity API for research"
+echo "  ❄️  Snowflake Cortex for AI processing"
+echo ""
+echo "Login: admin / callcenter123"
+echo ""
+
+cd "$(dirname "$0")"
+docker-compose up -d
+
+echo ""
+echo "✅ Platform starting..."
+echo "🌐 Access n8n at: http://localhost:5678"
+echo ""
+echo "Commands:"
+echo "  Stop: docker-compose down"
+echo "  Logs: docker-compose logs -f n8n"

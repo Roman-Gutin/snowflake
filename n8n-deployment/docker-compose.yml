@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=n8n
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=n8npassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - n8n-network
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8npassword
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=callcenter123
+      - N8N_HOST=0.0.0.0
+      - WEBHOOK_URL=http://localhost:5678
+      - N8N_METRICS=true
+      - PERPLEXITY_API_KEY=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
+      - SNOWFLAKE_ACCOUNT=ZWB79581
+      - SNOWFLAKE_USER=CALL_CENTER_SERVICE_ACCOUNT
+      - SNOWFLAKE_ROLE=CALL_CENTER_ROLE
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/files
+      - ./service_account_private_key.pem:/keys/snowflake_key.pem:ro
+    depends_on:
+      - postgres
+    networks:
+      - n8n-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - n8n-network
+
+volumes:
+  postgres_data:
+  n8n_data:
+  ollama_data:
+
+networks:
+  n8n-network:
+    driver: bridge
