@@ -237,6 +237,111 @@ def write_to_google_sheets(spreadsheet_id: str,
             'error_type': 'general_error'
         })
 
+def write_to_google_sheets_udf(spreadsheet_id, sheet_name, row_data):
+    """
+    Snowpark UDF wrapper for write_to_google_sheets
+    """
+    try:
+        # Get credentials from Snowflake secrets
+        import _snowflake
+
+        credentials = {
+            'client_id': _snowflake.get_generic_secret_string('client_id'),
+            'client_secret': _snowflake.get_generic_secret_string('client_secret'),
+            'refresh_token': _snowflake.get_generic_secret_string('refresh_token')
+        }
+
+        # Call the main function
+        result = write_to_google_sheets(
+            spreadsheet_id=spreadsheet_id,
+            sheet_name=sheet_name,
+            row_data=row_data,
+            credentials=json.dumps(credentials)
+        )
+
+        return result
+
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'error': str(e),
+            'error_type': 'udf_error'
+        })
+
+
+def export_table_to_google_sheets_udf(table_name, spreadsheet_id, sheet_name, include_headers):
+    """
+    Snowpark UDF that exports an entire table to Google Sheets
+    """
+    try:
+        # Get credentials from Snowflake secrets
+        import _snowflake
+        from snowflake.snowpark import Session
+
+        credentials = {
+            'client_id': _snowflake.get_generic_secret_string('client_id'),
+            'client_secret': _snowflake.get_generic_secret_string('client_secret'),
+            'refresh_token': _snowflake.get_generic_secret_string('refresh_token')
+        }
+
+        # Get Snowpark session
+        session = Session.builder.getOrCreate()
+
+        # Query the table
+        df = session.sql(f"SELECT * FROM {table_name}")
+        rows_data = df.collect()
+
+        results = []
+        row_count = 0
+
+        # Add headers if requested
+        if include_headers and rows_data:
+            headers = list(rows_data[0].asDict().keys())
+            header_result = write_to_google_sheets(
+                spreadsheet_id=spreadsheet_id,
+                sheet_name=sheet_name,
+                row_data=json.dumps(headers),
+                credentials=json.dumps(credentials)
+            )
+            results.append(json.loads(header_result))
+            row_count += 1
+
+        # Add data rows
+        for row in rows_data:
+            row_dict = row.asDict()
+            row_values = [str(v) if v is not None else '' for v in row_dict.values()]
+
+            result = write_to_google_sheets(
+                spreadsheet_id=spreadsheet_id,
+                sheet_name=sheet_name,
+                row_data=json.dumps(row_values),
+                credentials=json.dumps(credentials)
+            )
+
+            results.append(json.loads(result))
+            row_count += 1
+
+        return json.dumps({
+            'success': True,
+            'table_name': table_name,
+            'spreadsheet_id': spreadsheet_id,
+            'sheet_name': sheet_name,
+            'total_rows_exported': row_count,
+            'include_headers': include_headers,
+            'results': results
+        })
+
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'error': str(e),
+            'error_type': 'export_error',
+            'table_name': table_name,
+            'spreadsheet_id': spreadsheet_id,
+            'sheet_name': sheet_name
+        })
+
+
 # For testing
 if __name__ == "__main__":
     # Example usage
