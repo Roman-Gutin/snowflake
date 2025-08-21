@@ -30,11 +30,11 @@ Snowpark UDF integration for writing data from Snowflake directly to Google Shee
 ### 2. Sync Repository in Snowflake
 
 ```sql
-USE ROLE SYSADMIN;
-ALTER GIT REPOSITORY ASPECT.PUBLIC.SNOWFLAKE_REPO FETCH;
+USE ROLE ACCOUNTADMIN;
+ALTER GIT REPOSITORY ASPECT.PUBLIC.SNOWFLAKE FETCH;
 
 -- Verify files are available
-LIST @ASPECT.PUBLIC.SNOWFLAKE_REPO/branches/main/agent_tools/gsuite/gsheets_crud/;
+LIST @ASPECT.PUBLIC.SNOWFLAKE/gsuite/gsheets_crud/;
 ```
 
 ### 3. Run the Setup Script
@@ -67,14 +67,6 @@ SELECT APPEND_ROW_TO_SHEET(
     '2024-01-01',    -- Column 3
     '100.50'         -- Column 4
 );
-```
-
-## 🔍 Finding Spreadsheet ID
-
-The spreadsheet ID is in the Google Sheets URL:
-```
-https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-                                      ^-- This is the spreadsheet ID --^
 ```
 
 ## 🎯 Functions Available
@@ -117,29 +109,5 @@ https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2u
 - External access is limited to Google APIs only
 - Never commit actual credentials to git
 - Refresh tokens should be rotated periodically
-
-## 📊 Response Format
-
-**Success Response:**
-```json
-{
-  "success": true,
-  "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-  "sheet_name": "Sheet1", 
-  "updated_range": "Sheet1!A1:D1",
-  "updated_rows": 1,
-  "updated_columns": 4,
-  "updated_cells": 4
-}
-```
-
-**Error Response:**
-```json
-{
-  "success": false,
-  "error": "Error message",
-  "error_type": "http_error|json_error|general_error"
-}
-```
 
 Happy data writing! 🚀

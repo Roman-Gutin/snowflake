@@ -9,7 +9,7 @@ USE ROLE SYSADMIN;
 ALTER GIT REPOSITORY ASPECT.PUBLIC.SNOWFLAKE_REPO FETCH;
 
 -- Step 2: Verify files are available
-LIST @ASPECT.PUBLIC.SNOWFLAKE_REPO/branches/main/agent_tools/gsuite/gsheets_crud/;
+LIST @ASPECT.PUBLIC.SNOWFLAKE/gsuite/gsheets_crud/;
 
 -- Step 3: Switch to ACCOUNTADMIN to create secrets and integrations
 USE ROLE ACCOUNTADMIN;
@@ -64,7 +64,7 @@ RETURNS VARIANT
 LANGUAGE PYTHON
 RUNTIME_VERSION = '3.8'
 PACKAGES = ('requests', 'snowflake-snowpark-python')
-IMPORTS = ('@ASPECT.PUBLIC.SNOWFLAKE_REPO/branches/main/agent_tools/gsuite/gsheets_crud/google_sheets_handler.py')
+IMPORTS = ('@ASPECT.PUBLIC.SNOWFLAKE/gsuite/gsheets_crud/google_sheets_handler.py')
 EXTERNAL_ACCESS_INTEGRATIONS = (GOOGLE_SHEETS_ACCESS_INTEGRATION)
 SECRETS = (
     'client_id' = GOOGLE_OAUTH_CLIENT_ID,
